@@ -1,9 +1,7 @@
 """Main Module"""
 from typing import Protocol
 from abc import ABC
-import requests
-import json
-
+from requests_wrapper import RequestsWrapper
 class YarcEndpointInterface(Protocol):
     """Yet Another REST Client Endpoint Interface
 
@@ -19,6 +17,7 @@ class YarcEndpoint(ABC, YarcEndpointInterface):
         ABC (_type_): _description_
         YarcEndpointInterface (_type_): _description_
     """
+    
     __headers = {'content-type': 'application/json', 'accept': 'application/json'}
     """default JSON headers
     """
@@ -35,10 +34,27 @@ class YarcEndpoint(ABC, YarcEndpointInterface):
             headers (dict, optional): headers used in call to endpoint. Defaults to __headers.
             timeout (int, optional): time out setting for endpoint. Defaults to __timeout.
         """
-        self.base_url = base_url
-        self.path = path
+        self.__base_url = base_url
+        self.__path = path
         self.headers = headers
         self.timeout = timeout
+    
+    @staticmethod
+    def json_headers(self):
+        """return the JSON headers
+        """
+        return self.__headers
+    
+    @staticmethod
+    def default_timeout(self):
+        """return the default time out setting
+        """
+        return self.__timeout
+    
+    def endpoint_url(self):
+        """return the endpoint URL
+        """
+        return f"{self.__base_url}{self.__path}"
 class YarcEndpointFactory():
     """Yet Another REST Client Endpoint Factory
     """
@@ -76,17 +92,33 @@ class ExampleEndpoint(YarcEndpoint):
     Args:
         YarcEndpoint (YarcEndpoint): abstract class for REST client endpoints
     """
+    
+    def __init__(self, 
+                base_url: str, 
+                path: str, 
+                headers: dict = YarcEndpoint.json_headers(YarcEndpoint), 
+                timeout: int = YarcEndpoint.default_timeout(YarcEndpoint)):
+        """constructor
+
+        Args:
+            base_url (str): base URL for the endpoint (e.g. http://localhost:8080)
+            path (str): path for the endpoint (e.g. /api/v1)
+            headers (dict, optional): headers used in call to endpoint. Defaults to __headers.
+            timeout (int, optional): time out setting for endpoint. Defaults to __timeout.
+        """
+        super().__init__(base_url, path, headers, timeout)
+        self.__requests_wrapper = RequestsWrapper()
+        
     def get_contacts(self, *args, **kwargs):
         """get contacts from endpoint
         """
-        response = requests.get(f"{self.base_url}{self.path}", headers=self.headers, timeout=self.timeout)
+        response = self.__requests_wrapper.get(url=self.endpoint_url(), headers=self.headers, timeout=self.timeout)
         return response.json()
 
-    def post_contacts(self, values_dict: dict, *args, **kwargs):
+    def post_contacts(self, *args, **kwargs):
         """post (save) contact to endpoint
         """
-        print(values_dict)
-        response = requests.post(f"{self.base_url}{self.path}", headers=self.headers, timeout=self.timeout, data=json.dumps(values_dict))
+        response = self.__requests_wrapper.post(url=self.endpoint_url(), headers=self.headers, timeout=self.timeout, **kwargs)
         return response.json()
 
 if __name__ == '__main__':
@@ -100,6 +132,6 @@ if __name__ == '__main__':
     print(names[0])
 
     values_dict={'givenName': 'Edgardo', 'middleName': 'Sonya', 'surname': 'Zemlak'}
-    names = yarc_factory.process('post_contacts', values_dict=values_dict)
+    names = yarc_factory.process('post_contacts', json=names[1])
     print(names)
     
