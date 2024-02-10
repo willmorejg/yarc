@@ -34,7 +34,7 @@ class RequestsWrapper():
             print(e)
             return None
     
-    def post(self, url: str, headers: dict, timeout: int, json: dict):
+    def post(self, url: str, headers: dict, timeout: int, *args, **kwargs):
         """post request
 
         Args:
@@ -44,7 +44,7 @@ class RequestsWrapper():
             data (dict): data to post
         """
         try:
-            return requests.post(url, headers=headers, timeout=timeout, json=json)
+            return requests.post(url, headers=headers, timeout=timeout, *args, **kwargs)
         except requests.exceptions.RequestException as e:
             print(e)
             return None

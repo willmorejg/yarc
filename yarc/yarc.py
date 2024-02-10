@@ -108,7 +108,7 @@ class ExampleEndpoint(YarcEndpoint):
         """
         super().__init__(base_url, path, headers, timeout)
         self.__requests_wrapper = RequestsWrapper()
-        
+
     def get_contacts(self, *args, **kwargs):
         """get contacts from endpoint
         """
@@ -130,8 +130,9 @@ if __name__ == '__main__':
 
     names = yarc_factory.process('get_contacts')
     print(names[0])
+    
+    names[0]['middleName'] = 'MODIFIED'
 
-    values_dict={'givenName': 'Edgardo', 'middleName': 'Sonya', 'surname': 'Zemlak'}
-    names = yarc_factory.process('post_contacts', json=names[1])
+    names = yarc_factory.process('post_contacts', json=names[0])
     print(names)
     
